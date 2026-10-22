@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Layers/">
+    <Project Path="zSubscription.Entities.KhoiNBD/zSubscription.Entities.KhoiNBD.csproj" />
+    <Project Path="zSubscription.Repositories.KhoiNBD/zSubscription.Repositories.KhoiNBD.csproj" />
+    <Project Path="zSubscription.Services.KhoiNBD/zSubscription.Services.KhoiNBD.csproj" />
+  </Folder>
+  <Folder Name="/Worker/">
+    <Project Path="zSubscription.WorkerService.KhoiNBD/zSubscription.WorkerService.KhoiNBD.csproj" />
+  </Folder>
+</Solution>

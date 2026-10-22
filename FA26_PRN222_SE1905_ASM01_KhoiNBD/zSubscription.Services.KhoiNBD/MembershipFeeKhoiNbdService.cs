@@ -1,71 +1,80 @@
 using zSubscription.Entities.KhoiNBD.Models;
 using zSubscription.Repositories.KhoiNBD;
 
-namespace zSubscription.Services.KhoiNBD
+namespace zSubscription.Services.KhoiNBD;
+
+public class MembershipFeeKhoiNbdService : IMembershipFeeKhoiNbdService
 {
-    public class MembershipFeeKhoiNbdService : iMembershipFeeKhoiNbdService
+    private readonly MembershipFeeKhoiNbdRepository _repository;
+
+    public MembershipFeeKhoiNbdService(MembershipFeeKhoiNbdRepository repository)
     {
-        private readonly MembershipFeeKhoiNbdRepository _repository;
-        public MembershipFeeKhoiNbdService() => _repository = new MembershipFeeKhoiNbdRepository();
-        public async Task<int> CreateAsync(MembershipFeeKhoiNbd membershipFee)
+        _repository = repository;
+    }
+
+    public Task<List<MembershipFeeKhoiNbd>> GetAllAsync()
+        => _repository.GetAllAsync();
+
+    public Task<MembershipFeeKhoiNbd?> GetByIdAsync(int id)
+        => _repository.GetByIdAsync(id);
+
+    public Task<List<MembershipFeeKhoiNbd>> SearchAsync(string? memberName, string? activeStatus, string? packageName)
+        => _repository.SearchAsync(memberName, activeStatus, packageName);
+
+    public async Task<MembershipFeeKhoiNbd> CreateAsync(MembershipFeeKhoiNbd membershipFee)
+    {
+        ArgumentNullException.ThrowIfNull(membershipFee);
+
+        // Không đính kèm navigation khi thêm mới, tránh EF cố insert cả FeePackage.
+        membershipFee.FeePackageKhoiNbd = null;
+        membershipFee.MembershipFeeKhoiNbdid = 0;
+        membershipFee.PaymentDate = membershipFee.PaymentDate == default
+            ? DateTime.Today
+            : membershipFee.PaymentDate;
+        membershipFee.PublishDate ??= DateTime.Today;
+        membershipFee.UpdateAt = DateTime.Now;
+
+        return await _repository.CreateAsync(membershipFee);
+    }
+
+    public async Task<bool> UpdateAsync(MembershipFeeKhoiNbd membershipFee)
+    {
+        ArgumentNullException.ThrowIfNull(membershipFee);
+
+        var existing = await _repository.GetByIdAsync(membershipFee.MembershipFeeKhoiNbdid);
+        if (existing is null)
         {
-            try 
-            {
-                return await Task.Run(() => _repository.CreateAsync(membershipFee));
-            } 
-            catch (Exception ex) { throw new ApplicationException("Error creating Membership fee " + ex.Message, ex); }
-            //throw new NotImplementedException();
+            return false;
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        // Cập nhật trực tiếp trên entity đang được DbContext theo dõi để tránh lỗi
+        // "another instance with the same key value is already being tracked".
+        // Đặc biệt quan trọng với Blazor Server vì DbContext sống theo circuit.
+        existing.MemberName = membershipFee.MemberName;
+        existing.Amount = membershipFee.Amount;
+        existing.PaymentDate = membershipFee.PaymentDate;
+        existing.EndDate = membershipFee.EndDate;
+        existing.Notes = membershipFee.Notes;
+        existing.Status = membershipFee.Status;
+        existing.PublishDate = membershipFee.PublishDate ?? existing.PublishDate ?? DateTime.Today;
+        existing.FeePackageKhoiNbdid = membershipFee.FeePackageKhoiNbdid;
+        existing.IsActive = membershipFee.IsActive;
+        existing.UpdateAt = DateTime.Now;
+
+        // Không đính kèm navigation để tránh EF cập nhật lan sang FeePackage.
+        existing.FeePackageKhoiNbd = null;
+
+        return await _repository.UpdateAsync(existing);
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var existing = await _repository.GetByIdAsync(id);
+        if (existing is null)
         {
-            try 
-            {
-                var item = await _repository.GetByIdAsync(id);
-                if (item == null) return false;
-                return await _repository.RemoveAsync(item);
-            } 
-            catch (Exception ex) { throw new ApplicationException("Error deleting Membership fee " + ex.Message, ex); }
+            return false;
         }
 
-        public async Task<List<MembershipFeeKhoiNbd>> GetAllAsync()
-        {
-            try
-            {
-                return await Task.Run(() => _repository.GetAllAsync());
-            }
-            catch (Exception ex) { throw new ApplicationException("Error retrieving Membership fee list " + ex.Message, ex); }
-            //throw new NotImplementedException();
-        }
-
-        public async Task<MembershipFeeKhoiNbd> GetByIdAsync(int id)
-        {
-            try
-            {
-                return await Task.Run(() => _repository.GetByIdAsync(id));
-            }
-            catch (Exception ex) { throw new ApplicationException("Error retrieving Membership fee by ID " + ex.Message, ex); }
-            //throw new NotImplementedException();
-        }
-
-        public async Task<List<MembershipFeeKhoiNbd>> SearchAsync(string transCode, decimal amount, string payMethod)
-        {
-            try 
-            {
-                return await Task.Run(() => _repository.SearchAsync(amount, transCode, payMethod));
-            } 
-            catch (Exception ex) { throw new ApplicationException("Error searching Membership fee " + ex.Message, ex); }
-            //throw new NotImplementedException();
-        }
-
-        public Task<int> UpdateAsync(MembershipFeeKhoiNbd membershipFee)
-        {
-            try 
-            {
-                return Task.Run(() => _repository.UpdateAsync(membershipFee));
-            } 
-            catch (Exception ex) { throw new ApplicationException("Error updating Membership fee " + ex.Message, ex); }
-            //throw new NotImplementedException();
-        }
+        return await _repository.DeleteAsync(existing);
     }
 }

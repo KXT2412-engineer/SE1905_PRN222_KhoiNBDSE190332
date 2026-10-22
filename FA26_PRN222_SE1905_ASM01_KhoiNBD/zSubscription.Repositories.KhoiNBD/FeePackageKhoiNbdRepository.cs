@@ -1,16 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using zSubscription.Entities.KhoiNBD.Models;
+using zSubscription.Repositories.KhoiNBD.Base;
 using zSubscription.Repositories.KhoiNBD.DBContext;
 
-namespace zSubscription.Repositories.KhoiNBD
+namespace zSubscription.Repositories.KhoiNBD;
+
+public class FeePackageKhoiNbdRepository : GenericRepository<FeePackageKhoiNbd>
 {
-    public class FeePackageKhoiNbdRepository : GenericRepository<FeePackageKhoiNbd>
+    public FeePackageKhoiNbdRepository(PRN222Context context) : base(context)
     {
-        public FeePackageKhoiNbdRepository() => _context ??= new PRN222Context();
-        public FeePackageKhoiNbdRepository(PRN222Context context) => _context = context;
+    }
+
+    public override async Task<List<FeePackageKhoiNbd>> GetAllAsync()
+    {
+        return await _context.FeePackageKhoiNbds
+            .OrderBy(x => x.PackageName)
+            .ToListAsync();
     }
 }
