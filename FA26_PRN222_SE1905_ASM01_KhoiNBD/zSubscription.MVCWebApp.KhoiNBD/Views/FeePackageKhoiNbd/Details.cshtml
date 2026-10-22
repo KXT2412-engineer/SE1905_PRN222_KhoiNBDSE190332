@@ -1,54 +1,63 @@
 @model zSubscription.Entities.KhoiNBD.Models.FeePackageKhoiNbd
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Fee Package Details";
 }
 
-<h1>Details</h1>
+<div class="card border-0 shadow-sm mb-4" style="border-radius:14px;">
+    <div class="card-header text-white" style="background: linear-gradient(90deg,#1e3a8a,#2563eb); border-radius:14px 14px 0 0;">
+        <h4 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Fee Package Details</h4>
+    </div>
+    <div class="card-body p-4" id="depositSliptID">
+        <dl class="row">
+            <dt class="col-sm-3 fw-semibold">Package Name / Code</dt>
+            <dd class="col-sm-9"><span id="Code" class="px-2 py-1 rounded">@Html.DisplayFor(model => model.PackageName)</span></dd>
 
-<div>
-    <h4>FeePackageKhoiNbd</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PackageName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PackageName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DurationInDays)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DurationInDays)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PublishDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PublishDate)
-        </dd>
-    </dl>
+            <dt class="col-sm-3 fw-semibold">Description</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Description)</dd>
+
+            <dt class="col-sm-3 fw-semibold">Duration (Days)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.DurationInDays) days</dd>
+
+            <dt class="col-sm-3 fw-semibold">Price</dt>
+            <dd class="col-sm-9 text-success fw-bold">@Model.Price?.ToString("N0") ₫</dd>
+
+            <dt class="col-sm-3 fw-semibold">Status</dt>
+            <dd class="col-sm-9">@(Model.Status == 1 ? "Active" : "Inactive")</dd>
+
+            <dt class="col-sm-3 fw-semibold">Publish Date</dt>
+            <dd class="col-sm-9">@Model.PublishDate?.ToString("dd/MM/yyyy")</dd>
+        </dl>
+        <div class="mt-4">
+            <a asp-action="Edit" asp-route-id="@Model?.FeePackageKhoiNbdid" class="btn btn-primary px-3 me-2">Edit</a>
+            <a asp-action="Index" class="btn btn-outline-secondary px-3">Back to List</a>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.FeePackageKhoiNbdid">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/zPaymentHub")
+            .build();
+
+        connection.start().catch(err => console.error(err.toString()));
+
+        connection.on("Receiver_DeleteTransactionCashDepositSlip", function (depositSlipId) {
+            document.getElementById("depositSliptID").innerHTML = "This item was deleted";
+        });
+
+        connection.on("Receiver_UpdateTransactionCashDepositSlip", function (depositSlip) {
+            if (typeof depositSlip === "string") {
+                try { depositSlip = JSON.parse(depositSlip); } catch(e) {}
+            }
+
+            if (depositSlip && document.getElementById("Code")) {
+                document.getElementById("Code").innerHTML = depositSlip.code || depositSlip.Code || "";
+                document.getElementById("Code").style.color = "blue";
+                document.getElementById("Code").style.backgroundColor = "yellow";
+            }
+        });
+    </script>
+}

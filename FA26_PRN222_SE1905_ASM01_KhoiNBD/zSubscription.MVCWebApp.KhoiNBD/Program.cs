@@ -1,3 +1,4 @@
+using zSubscription.MVCWebApp.KhoiNBD.Hubs;
 using zSubscription.Repositories.KhoiNBD.DBContext;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<PRN222Context>();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -26,5 +28,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<ChatHub>("/chatHub");
+app.MapHub<zPaymentHub>("/zPaymentHub");
 
 app.Run();

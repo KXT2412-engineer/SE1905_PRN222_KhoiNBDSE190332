@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../FA26_PRN222_SE1905_ASM01_KhoiNBD/zSubscription.Entities.KhoiNBD/zSubscription.Entities.KhoiNBD.csproj" />
+  <Project Path="../FA26_PRN222_SE1905_ASM01_KhoiNBD/zSubscription.Repositories.KhoiNBD/zSubscription.Repositories.KhoiNBD.csproj" />
+  <Project Path="../FA26_PRN222_SE1905_ASM01_KhoiNBD/zSubscription.Services.KhoiNBD/zSubscription.Services.KhoiNBD.csproj" />
+  <Project Path="zCoach.RazorWebApp.KhoiNBD/zCoach.RazorWebApp.KhoiNBD.csproj" />
+</Solution>

@@ -1,0 +1,74 @@
+@page
+@model zCoach.RazorWebApp.KhoiNBD.Pages_FeePackageKhoiNbds.IndexModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+<body>
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.FeePackageKhoiNbd[0].PackageName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FeePackageKhoiNbd[0].Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FeePackageKhoiNbd[0].DurationInDays)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FeePackageKhoiNbd[0].Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FeePackageKhoiNbd[0].Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FeePackageKhoiNbd[0].PublishDate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.FeePackageKhoiNbd) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.PackageName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DurationInDays)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PublishDate)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.FeePackageKhoiNbdid">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.FeePackageKhoiNbdid">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.FeePackageKhoiNbdid">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+</body>
+</html>
