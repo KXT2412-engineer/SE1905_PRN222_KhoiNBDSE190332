@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="zSubscription.TCPClient.KhoiNBD/zSubscription.TCPClient.KhoiNBD.csproj" />
+  <Project Path="zSubscription.TCPServer.KhoiNBD/zSubscription.TCPServer.KhoiNBD.csproj" />
+</Solution>

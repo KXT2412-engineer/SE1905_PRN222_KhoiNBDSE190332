@@ -1,40 +1,45 @@
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Tổng quan";
 }
 
-<div class="p-4 p-md-5 mb-4 bg-white rounded-3 shadow-sm">
-    <h1 class="display-6 fw-semibold">ASM1 · ASP.NET Core MVC WebApp</h1>
-    <p class="lead mb-2">Quản lý <strong>Membership Fees</strong> với CRUD, tìm kiếm 3 tiêu chí và phân trang jQuery.</p>
-    <p class="text-muted mb-4">
-        Assignment này dùng MVC thuần. CRUD được thực hiện bằng Razor View, form POST
-        và Entity Framework Core.
-    </p>
-    <a asp-controller="MembershipFees" asp-action="Index" class="btn btn-primary btn-lg">Mở Membership Fees</a>
-</div>
-
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">CRUD MVC</h2>
-                <p class="text-muted mb-0">Create / Details / Edit / Delete bằng Razor View + POST form.</p>
-            </div>
+<section class="hero-panel mb-4">
+    <div class="hero-content">
+        <span class="eyebrow">Assignment 01 · MVC</span>
+        <h1>Quản lý hội viên gọn gàng, rõ ràng và hiệu quả.</h1>
+        <p class="lead mb-0">
+            Theo dõi khoản phí, thời hạn và gói membership trong một giao diện thống nhất.
+            Tìm kiếm nhanh, thao tác an toàn và hiển thị tốt trên mọi kích thước màn hình.
+        </p>
+        <div class="hero-actions">
+            <a asp-controller="MembershipFees" asp-action="Index" class="btn btn-light btn-lg px-4">
+                Mở danh sách khoản phí
+            </a>
+            <a asp-controller="MembershipFees" asp-action="Create" class="btn btn-outline-light btn-lg px-4">
+                Tạo khoản phí mới
+            </a>
         </div>
     </div>
+</section>
+<section class="row g-3">
     <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">Tìm kiếm 3 tiêu chí</h2>
-                <p class="text-muted mb-0">Tìm theo tên hội viên, phương thức thanh toán và tên gói phí.</p>
-            </div>
-        </div>
+        <article class="feature-card">
+            <div class="feature-icon">01</div>
+            <h2>CRUD bằng MVC</h2>
+            <p>Tạo, xem, chỉnh sửa và xoá dữ liệu qua Controller, Service và Razor View.</p>
+        </article>
     </div>
     <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">Phân trang jQuery</h2>
-                <p class="text-muted mb-0">Bảng dữ liệu được phân trang phía client bằng jQuery.</p>
-            </div>
-        </div>
+        <article class="feature-card">
+            <div class="feature-icon">02</div>
+            <h2>Tìm kiếm linh hoạt</h2>
+            <p>Lọc theo tên hội viên, trạng thái hoạt động và tên gói membership.</p>
+        </article>
     </div>
-</div>
+    <div class="col-md-4">
+        <article class="feature-card">
+            <div class="feature-icon">03</div>
+            <h2>Trải nghiệm responsive</h2>
+            <p>Bảng dữ liệu, biểu mẫu và phân trang được tối ưu cho desktop lẫn mobile.</p>
+        </article>
+    </div>
+</section>

@@ -1,61 +1,63 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Tổng quan";
 }
 
-<div class="p-4 p-md-5 mb-4 bg-white rounded-3 shadow-sm">
-    <h1 class="display-6 fw-semibold">ASM2 · ASP.NET Core Razor Pages</h1>
-    <p class="lead mb-2">
-        Quản lý <strong>Membership Fees</strong> với Razor Pages CRUD, CRUD SignalR,
-        tìm kiếm 3 tiêu chí và phân trang jQuery.
-    </p>
-    <p class="text-muted mb-4">
-        Đăng nhập bằng cookie với tài khoản mẫu trong script SQL. Sau khi đăng nhập, các nút
-        <span class="badge bg-success">SignalR Create/Edit/Delete</span> nằm ngay cạnh các nút CRUD thường.
-    </p>
-
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <a class="btn btn-primary btn-lg" asp-page="/MembershipFeesKhoiNbd/Index">Mở Membership Fees</a>
-    }
-    else
-    {
-        <a class="btn btn-primary btn-lg" asp-page="/Account/Login">Đăng nhập để tiếp tục</a>
-    }
-</div>
-
-<div class="row g-3">
-    <div class="col-md-6 col-xl-3">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">Razor Pages CRUD</h2>
-                <p class="text-muted mb-0">Create / Details / Edit / Delete với PageModel và handler OnGet/OnPost.</p>
-            </div>
+<section class="hero-panel mb-4">
+    <div class="hero-content">
+        <span class="eyebrow">Assignment 02 · Razor Pages + SignalR</span>
+        <h1>Dữ liệu membership cập nhật tức thời.</h1>
+        <p class="lead mb-0">
+            Quản lý khoản phí bằng Razor Pages, đồng bộ thay đổi qua SignalR và bảo vệ
+            chức năng nghiệp vụ bằng đăng nhập cookie.
+        </p>
+        <div class="hero-actions">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-page="/MembershipFeesKhoiNbd/Index" class="btn btn-light btn-lg px-4">
+                    Mở bảng điều khiển
+                </a>
+                <a asp-page="/MembershipFeesKhoiNbd/Create" class="btn btn-outline-light btn-lg px-4">
+                    Tạo khoản phí mới
+                </a>
+            }
+            else
+            {
+                <a asp-page="/Account/Login" class="btn btn-light btn-lg px-4">
+                    Đăng nhập để bắt đầu
+                </a>
+            }
         </div>
     </div>
+</section>
+<section class="row g-3">
     <div class="col-md-6 col-xl-3">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">SignalR CRUD</h2>
-                <p class="text-muted mb-0">Create / Edit / Delete qua hub và tự động tải lại danh sách khi có thay đổi.</p>
-            </div>
-        </div>
+        <article class="feature-card">
+            <div class="feature-icon">RP</div>
+            <h2>Razor Pages</h2>
+            <p>Luồng CRUD rõ ràng với PageModel, handler OnGet và OnPost.</p>
+        </article>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">Cookie Authentication</h2>
-                <p class="text-muted mb-0">Đăng nhập bằng bảng <code>System.UserAccount</code>.</p>
-            </div>
-        </div>
+        <article class="feature-card">
+            <div class="feature-icon">SR</div>
+            <h2>SignalR realtime</h2>
+            <p>Thao tác tạo, sửa và xoá được gửi đến các phiên đang kết nối.</p>
+        </article>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5">Search &amp; Pagination</h2>
-                <p class="text-muted mb-0">Tìm theo tên hội viên, phương thức thanh toán, tên gói; phân trang jQuery.</p>
-            </div>
-        </div>
+        <article class="feature-card">
+            <div class="feature-icon">AU</div>
+            <h2>Đăng nhập an toàn</h2>
+            <p>Cookie Authentication bảo vệ các màn hình quản lý dữ liệu.</p>
+        </article>
     </div>
-</div>
+    <div class="col-md-6 col-xl-3">
+        <article class="feature-card">
+            <div class="feature-icon">FX</div>
+            <h2>Tìm kiếm và lọc</h2>
+            <p>Ba tiêu chí tìm kiếm kết hợp phân trang trực quan phía client.</p>
+        </article>
+    </div>
+</section>

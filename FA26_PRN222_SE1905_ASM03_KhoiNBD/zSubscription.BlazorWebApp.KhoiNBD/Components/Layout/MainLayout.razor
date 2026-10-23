@@ -1,20 +1,24 @@
 @inherits LayoutComponentBase
 
+<div class="app-shell">
 <header>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-primary bg-gradient border-bottom box-shadow mb-3">
+    <nav class="navbar navbar-expand-lg navbar-dark app-navbar">
         <div class="container">
-            <a class="navbar-brand" href="">ASM3 · Blazor Server</a>
+            <a class="navbar-brand" href="">
+                <span class="brand-mark">A3</span>
+                <span>KhoiNBD Interactive</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                     aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav flex-grow-1">
+            <div class="collapse navbar-collapse justify-content-end" id="mainNav">
+                <ul class="navbar-nav align-items-lg-center">
                     <li class="nav-item">
-                        <NavLink class="nav-link text-white" href="" Match="NavLinkMatch.All">Home</NavLink>
+                        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Tổng quan</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link text-white" href="membership-fees">Membership Fees</NavLink>
+                        <NavLink class="nav-link" href="membership-fees">Khoản phí</NavLink>
                     </li>
                 </ul>
             </div>
@@ -22,13 +26,16 @@
     </nav>
 </header>
 
-<main class="container pb-3">
+<main class="container app-main">
     @Body
 </main>
 
-<footer class="border-top footer text-muted bg-white mt-4">
+<footer class="app-footer mt-4">
     <div class="container py-2">
-        &copy; 2026 - FA26_PRN222_SE1905_ASM03_KhoiNBD - Blazor WebApp
+        <div class="d-flex flex-column flex-sm-row justify-content-between gap-1">
+            <span>&copy; 2026 KhoiNBD Interactive</span>
+            <span>Assignment 03 · Blazor Interactive Server</span>
+        </div>
     </div>
 </footer>
 
@@ -36,4 +43,5 @@
     Đã xảy ra lỗi không mong muốn.
     <a href="" class="reload">Tải lại</a>
     <a class="dismiss">×</a>
+</div>
 </div>
