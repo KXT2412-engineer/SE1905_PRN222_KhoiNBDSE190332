@@ -5,7 +5,8 @@ Bộ bài tập dùng database riêng của KhoiNBD với hai bảng chính:
 - `MemberKhoiNBD` (được map bởi entity `MembershipFeeKhoiNbd`)
 - `MembershipPackageKhoiNBD` (được map bởi entity `FeePackageKhoiNbd`)
 
-Connection string và toàn bộ mapping database gốc được giữ nguyên.
+Toàn bộ mapping database gốc được giữ nguyên. Connection string cục bộ được lưu
+bằng .NET User Secrets để mật khẩu không bị đưa lên GitHub.
 
 | Bài | Công nghệ | Chức năng chính |
 | --- | --- | --- |
@@ -33,4 +34,38 @@ Database của KhoiNBD không có các cột `PaymentMethod`, `TransactionCode` 
 map: tên hội viên, phí đăng ký, ngày tham gia, ngày hết hạn, gói membership, trạng
 thái, ngày publish và ghi chú. Ba tiêu chí tìm kiếm là tên hội viên, trạng thái
 Active/Inactive và tên gói.
+
+Mỗi startup project đọc chuỗi kết nối từ khóa
+`ConnectionStrings:DefaultConnection`. Giá trị thật được lưu bằng .NET User
+Secrets trên máy phát triển, còn `appsettings.json` chỉ giữ giá trị rỗng an toàn.
+
+## ASM04 - chạy dưới dạng Windows Service
+
+ASM04 có thể chạy trực tiếp để debug hoặc cài thành Windows Service. Khi chạy như
+service, log hệ thống được gửi vào Windows Event Log; thống kê mỗi chu kỳ cũng được
+ghi dạng JSON Lines tại `Logs/membership-worker.jsonl`.
+
+Publish ứng dụng:
+
+```powershell
+dotnet publish "FA26_PRN222_SE1905_ASM04_KhoiNBD\zSubscription.WorkerService.KhoiNBD" -c Release -r win-x64 --self-contained false -o "C:\Services\KhoiNBD_PRN222_ASM04"
+```
+
+Mở PowerShell bằng quyền Administrator rồi cài và khởi động service:
+
+```powershell
+sc.exe create KhoiNBD_PRN222_ASM04 binPath= "C:\Services\KhoiNBD_PRN222_ASM04\zSubscription.WorkerService.KhoiNBD.exe" start= auto
+sc.exe start KhoiNBD_PRN222_ASM04
+```
+
+Dừng và gỡ service khi không còn sử dụng:
+
+```powershell
+sc.exe stop KhoiNBD_PRN222_ASM04
+sc.exe delete KhoiNBD_PRN222_ASM04
+```
+
+Các thiết lập `IntervalSeconds`, `DeactivateExpiredFees`, `WriteFileLog` và
+`LogFilePath` nằm trong `appsettings.json`. Khi chạy bằng profile Development,
+`DeactivateExpiredFees` được tắt để việc kiểm thử không sửa dữ liệu.
 

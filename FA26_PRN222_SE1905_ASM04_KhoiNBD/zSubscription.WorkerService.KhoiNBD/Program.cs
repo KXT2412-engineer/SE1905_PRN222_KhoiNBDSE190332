@@ -6,6 +6,12 @@ using zSubscription.WorkerService.KhoiNBD;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+builder.Services.AddWindowsService(options =>
+{
+    options.ServiceName = builder.Configuration["WindowsService:ServiceName"]
+        ?? "KhoiNBD_PRN222_ASM04";
+});
+
 builder.Services.AddDbContext<PRN222Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
