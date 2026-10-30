@@ -9,10 +9,10 @@ Connection string và toàn bộ mapping database gốc được giữ nguyên.
 
 | Bài | Công nghệ | Chức năng chính |
 | --- | --- | --- |
-| ASM01 | ASP.NET Core MVC | CRUD, tìm kiếm 3 tiêu chí, phân trang jQuery |
-| ASM02 | Razor Pages + SignalR | Đăng nhập cookie, CRUD Razor Pages, CRUD SignalR |
+| ASM01 | ASP.NET Core MVC + SignalR | CRUD thường và CRUD realtime, tìm kiếm, phân trang |
+| ASM02 | Razor Pages | Đăng nhập cookie, CRUD bằng PageModel, tìm kiếm, phân trang |
 | ASM03 | Blazor Server | CRUD tương tác, tìm kiếm, phân trang jQuery |
-| ASM04 | Worker Service | Tự động vô hiệu hoá membership hết hạn và ghi log thống kê |
+| ASM04 | Console/Windows Service | Đọc database và ghi snapshot JSON vào file TXT mỗi 5 giây |
 | ASM05 | TCP Client/Server | Tìm khoản phí theo ID, tên hội viên, tên gói hoặc lấy tất cả qua TCP |
 
 ## Chạy từng assignment

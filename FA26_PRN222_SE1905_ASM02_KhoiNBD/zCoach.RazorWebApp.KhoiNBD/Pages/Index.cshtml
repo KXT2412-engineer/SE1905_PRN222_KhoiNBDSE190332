@@ -6,11 +6,11 @@
 
 <section class="hero-panel mb-4">
     <div class="hero-content">
-        <span class="eyebrow">Assignment 02 · Razor Pages + SignalR</span>
-        <h1>Dữ liệu membership cập nhật tức thời.</h1>
+        <span class="eyebrow">Assignment 02 · Razor Pages</span>
+        <h1>Quản lý membership bằng Razor Pages.</h1>
         <p class="lead mb-0">
-            Quản lý khoản phí bằng Razor Pages, đồng bộ thay đổi qua SignalR và bảo vệ
-            chức năng nghiệp vụ bằng đăng nhập cookie.
+            CRUD bằng PageModel và handler OnGet/OnPost, kết hợp tìm kiếm, phân trang
+            và đăng nhập cookie.
         </p>
         <div class="hero-actions">
             @if (User.Identity?.IsAuthenticated == true)
@@ -41,9 +41,9 @@
     </div>
     <div class="col-md-6 col-xl-3">
         <article class="feature-card">
-            <div class="feature-icon">SR</div>
-            <h2>SignalR realtime</h2>
-            <p>Thao tác tạo, sửa và xoá được gửi đến các phiên đang kết nối.</p>
+            <div class="feature-icon">MV</div>
+            <h2>Model binding</h2>
+            <p>Form, validation và dữ liệu được xử lý rõ ràng qua PageModel.</p>
         </article>
     </div>
     <div class="col-md-6 col-xl-3">

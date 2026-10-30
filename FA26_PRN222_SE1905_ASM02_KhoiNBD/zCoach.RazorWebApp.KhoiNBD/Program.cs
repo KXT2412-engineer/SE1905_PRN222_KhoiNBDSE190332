@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using zCoach.RazorWebApp.KhoiNBD.Hubs;
 using zSubscription.Repositories.KhoiNBD;
 using zSubscription.Repositories.KhoiNBD.DBContext;
 using zSubscription.Services.KhoiNBD;
@@ -8,7 +7,6 @@ using zSubscription.Services.KhoiNBD;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -47,6 +45,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
-app.MapHub<MembershipFeeHub>("/membershipFeeHub");
 
 app.Run();

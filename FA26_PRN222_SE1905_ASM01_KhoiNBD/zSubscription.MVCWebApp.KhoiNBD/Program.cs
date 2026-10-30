@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using zSubscription.MVCWebApp.KhoiNBD.Hubs;
 using zSubscription.Repositories.KhoiNBD;
 using zSubscription.Repositories.KhoiNBD.DBContext;
 using zSubscription.Services.KhoiNBD;
@@ -6,6 +7,7 @@ using zSubscription.Services.KhoiNBD;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<PRN222Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -33,5 +35,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<MembershipFeeHub>("/membershipFeeHub");
 
 app.Run();

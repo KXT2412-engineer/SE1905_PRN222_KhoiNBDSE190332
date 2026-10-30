@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using zSubscription.Entities.KhoiNBD.Models;
+using zSubscription.MVCWebApp.KhoiNBD.Hubs;
 using zSubscription.Services.KhoiNBD;
 
 namespace zSubscription.MVCWebApp.KhoiNBD.Controllers;
@@ -9,13 +11,16 @@ public class MembershipFeesController : Controller
 {
     private readonly IMembershipFeeKhoiNbdService _membershipFeeService;
     private readonly IFeePackageKhoiNbdService _feePackageService;
+    private readonly IHubContext<MembershipFeeHub> _hub;
 
     public MembershipFeesController(
         IMembershipFeeKhoiNbdService membershipFeeService,
-        IFeePackageKhoiNbdService feePackageService)
+        IFeePackageKhoiNbdService feePackageService,
+        IHubContext<MembershipFeeHub> hub)
     {
         _membershipFeeService = membershipFeeService;
         _feePackageService = feePackageService;
+        _hub = hub;
     }
 
     // GET: /MembershipFees?memberName=...&activeStatus=...&packageName=...
@@ -59,6 +64,7 @@ public class MembershipFeesController : Controller
         }
 
         await _membershipFeeService.CreateAsync(membershipFee);
+        await BroadcastChangedAsync("created", membershipFee.MemberName);
         TempData["Success"] = $"Đã tạo khoản phí cho \"{membershipFee.MemberName}\".";
         return RedirectToAction(nameof(Index));
     }
@@ -98,6 +104,8 @@ public class MembershipFeesController : Controller
             return NotFound();
         }
 
+        await BroadcastChangedAsync("updated", membershipFee.MemberName);
+
         TempData["Success"] = $"Đã cập nhật khoản phí #{membershipFee.MembershipFeeKhoiNbdid}.";
         return RedirectToAction(nameof(Index));
     }
@@ -112,12 +120,25 @@ public class MembershipFeesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
+        var existing = await _membershipFeeService.GetByIdAsync(id);
         var deleted = await _membershipFeeService.DeleteAsync(id);
+        if (deleted)
+        {
+            await BroadcastChangedAsync("deleted", existing?.MemberName);
+        }
         TempData[deleted ? "Success" : "Error"] = deleted
             ? $"Đã xoá khoản phí #{id}."
             : $"Không tìm thấy khoản phí #{id}.";
         return RedirectToAction(nameof(Index));
     }
+
+    private Task BroadcastChangedAsync(string action, string? memberName)
+        => _hub.Clients.All.SendAsync("MembershipFeeChanged", new
+        {
+            Action = action,
+            MemberName = memberName,
+            ChangedAt = DateTime.Now.ToString("HH:mm:ss dd/MM/yyyy")
+        });
 
     private async Task LoadPackagesAsync(int? selectedId = null)
     {
