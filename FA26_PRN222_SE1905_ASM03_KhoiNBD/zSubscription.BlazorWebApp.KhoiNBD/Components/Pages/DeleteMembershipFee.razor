@@ -1,0 +1,46 @@
+@inject IMembershipFeeKhoiNbdService FeeService
+
+<section class="card border-danger shadow-sm my-3">
+    <div class="card-header text-bg-danger"><h2 class="h5 mb-0">Xoá khoản phí #@Item.MembershipFeeKhoiNbdid</h2></div>
+    <div class="card-body">
+        <p>Bạn có chắc muốn xoá khoản phí của <strong>@Item.MemberName</strong> với số tiền @Item.Amount.ToString("N0") đ không?</p>
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-danger" disabled="@busy" @onclick="DeleteAsync">@(busy ? "Đang xoá…" : "Xoá khoản phí")</button>
+            <button type="button" class="btn btn-outline-secondary" disabled="@busy" @onclick="() => OnCancel.InvokeAsync()">Huỷ</button>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public MembershipFeeKhoiNbd Item { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnDeleted { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string? errorMessage;
+    private bool busy;
+
+    private async Task DeleteAsync()
+    {
+        if (busy) return;
+        busy = true;
+        errorMessage = null;
+        try
+        {
+            if (!await FeeService.DeleteAsync(Item.MembershipFeeKhoiNbdid))
+            {
+                errorMessage = "Không tìm thấy khoản phí cần xoá.";
+                return;
+            }
+            await OnDeleted.InvokeAsync($"Đã xoá khoản phí #{Item.MembershipFeeKhoiNbdid}.");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không xoá được khoản phí: " + ex.Message;
+        }
+        finally { busy = false; }
+    }
+}

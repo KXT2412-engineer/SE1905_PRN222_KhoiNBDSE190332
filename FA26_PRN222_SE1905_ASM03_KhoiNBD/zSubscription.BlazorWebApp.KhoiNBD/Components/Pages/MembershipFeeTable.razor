@@ -1,0 +1,196 @@
+@inject IMembershipFeeKhoiNbdService FeeService
+
+<div class="page-heading d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">Quản lý khoản phí tương tác</h1>
+        <p class="text-muted mb-0">Blazor CRUD, tìm kiếm linh hoạt và cập nhật ngay trên một màn hình.</p>
+    </div>
+    <button type="button" class="btn btn-primary" @onclick="() => OnCreate.InvokeAsync()">+ Tạo khoản phí</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+
+@if (viewingItem is not null)
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Chi tiết khoản phí #@viewingItem.MembershipFeeKhoiNbdid</h2>
+            <button type="button" class="btn-close" @onclick="() => viewingItem = null" aria-label="Đóng"></button>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Hội viên</dt><dd class="col-sm-9">@viewingItem.MemberName</dd>
+                <dt class="col-sm-3">Số tiền</dt><dd class="col-sm-9">@viewingItem.Amount.ToString("N0") đ</dd>
+                <dt class="col-sm-3">Ngày thanh toán</dt><dd class="col-sm-9">@viewingItem.PaymentDate.ToString("dd/MM/yyyy")</dd>
+                <dt class="col-sm-3">Gói phí</dt><dd class="col-sm-9">@(viewingItem.FeePackageKhoiNbd?.PackageName ?? "-")</dd>
+                <dt class="col-sm-3">Ngày kết thúc</dt><dd class="col-sm-9">@(viewingItem.EndDate?.ToString("dd/MM/yyyy") ?? "-")</dd>
+                <dt class="col-sm-3">Trạng thái</dt><dd class="col-sm-9">@(viewingItem.Status?.ToString() ?? "-") · @(viewingItem.IsActive ? "Active" : "Inactive")</dd>
+                <dt class="col-sm-3">Ngày publish</dt><dd class="col-sm-9">@(viewingItem.PublishDate?.ToString("dd/MM/yyyy") ?? "-")</dd>
+                <dt class="col-sm-3">Ghi chú</dt><dd class="col-sm-9">@(string.IsNullOrWhiteSpace(viewingItem.Notes) ? "-" : viewingItem.Notes)</dd>
+            </dl>
+        </div>
+    </div>
+}
+
+<form class="card card-body filter-card mb-3" @onsubmit="SearchAsync" @onsubmit:preventDefault>
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label" for="searchMemberName">Tên hội viên</label>
+            <input id="searchMemberName" class="form-control" @bind="memberName" placeholder="VD: Nguyễn Văn An" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="searchActiveStatus">Trạng thái hoạt động</label>
+            <select id="searchActiveStatus" class="form-select" @bind="activeStatus">
+                <option value="">-- Tất cả --</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="searchPackageName">Tên gói</label>
+            <input id="searchPackageName" class="form-control" @bind="packageName" placeholder="VD: Premium" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-outline-primary" disabled="@busy">Tìm kiếm</button>
+            <button type="button" class="btn btn-outline-secondary" @onclick="ClearSearchAsync" disabled="@busy">Xoá lọc</button>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow-sm" aria-busy="@busy">
+    @if (busy)
+    {
+        <div class="p-3 text-primary" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Đang tải dữ liệu…</div>
+    }
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Hội viên</th><th>Thanh toán</th><th>Thời hạn</th><th>Gói</th><th>Trạng thái</th><th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (items.Count == 0 && !busy)
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">Không có dữ liệu phù hợp.</td></tr>
+                }
+                @foreach (var item in PagedItems)
+                {
+                    <tr @key="item.MembershipFeeKhoiNbdid">
+                        <td><div class="fw-semibold">@item.MemberName</div><div class="text-muted small">ID: @item.MembershipFeeKhoiNbdid</div></td>
+                        <td><div class="fw-semibold">@item.Amount.ToString("N0") đ</div><div class="text-muted small">Ngày tham gia: @item.PaymentDate.ToString("dd/MM/yyyy")</div></td>
+                        <td><div>Hết hạn: @(item.EndDate?.ToString("dd/MM/yyyy") ?? "-")</div><div class="text-muted small">Publish: @(item.PublishDate?.ToString("dd/MM/yyyy") ?? "-")</div></td>
+                        <td>@(item.FeePackageKhoiNbd?.PackageName ?? "-")</td>
+                        <td><div class="small">Status: @(item.Status?.ToString() ?? "-")</div><span class="badge @(item.IsActive ? "bg-success" : "bg-secondary")">@(item.IsActive ? "Active" : "Inactive")</span></td>
+                        <td class="text-end">
+                            <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => viewingItem = item">View</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnEdit.InvokeAsync(item)">Edit</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => OnDelete.InvokeAsync(item)">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer bg-white d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <label for="feePageSize" class="small text-muted mb-0">Số dòng/trang</label>
+            <select id="feePageSize" class="form-select form-select-sm" style="width:auto" value="@pageSize" @onchange="ChangePageSize">
+                <option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option>
+            </select>
+        </div>
+        <span class="small text-muted" role="status">Hiển thị @FirstRow–@LastRow / @items.Count khoản phí</span>
+        <nav aria-label="Phân trang">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item"><button type="button" class="page-link" disabled="@(busy || page == 1)" @onclick="() => ChangePage(page - 1)">Trước</button></li>
+                @foreach (var number in VisiblePages)
+                {
+                    <li class="page-item @(number == page ? "active" : null)"><button type="button" class="page-link" disabled="@busy" @onclick="() => ChangePage(number)">@number</button></li>
+                }
+                <li class="page-item"><button type="button" class="page-link" disabled="@(busy || page == PageCount)" @onclick="() => ChangePage(page + 1)">Tiếp</button></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int RefreshKey { get; set; }
+    [Parameter] public EventCallback OnCreate { get; set; }
+    [Parameter] public EventCallback<MembershipFeeKhoiNbd> OnEdit { get; set; }
+    [Parameter] public EventCallback<MembershipFeeKhoiNbd> OnDelete { get; set; }
+
+    private List<MembershipFeeKhoiNbd> items = new();
+    private MembershipFeeKhoiNbd? viewingItem;
+    private string? memberName;
+    private string? activeStatus;
+    private string? packageName;
+    private string? errorMessage;
+    private bool busy;
+    private bool initialized;
+    private int appliedRefreshKey = int.MinValue;
+    private int page = 1;
+    private int pageSize = 10;
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(items.Count / (double)pageSize));
+    private int FirstRow => items.Count == 0 ? 0 : (page - 1) * pageSize + 1;
+    private int LastRow => Math.Min(page * pageSize, items.Count);
+    private IEnumerable<MembershipFeeKhoiNbd> PagedItems => items.Skip((page - 1) * pageSize).Take(pageSize);
+    private IEnumerable<int> VisiblePages => Enumerable.Range(Math.Max(1, Math.Min(page - 2, PageCount - 4)), Math.Min(5, PageCount));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!initialized || appliedRefreshKey != RefreshKey)
+        {
+            initialized = true;
+            appliedRefreshKey = RefreshKey;
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        if (busy) return;
+        busy = true;
+        errorMessage = null;
+        try
+        {
+            items = await FeeService.SearchAsync(memberName, activeStatus, packageName);
+            page = Math.Clamp(page, 1, PageCount);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không tải được danh sách khoản phí: " + ex.Message;
+        }
+        finally { busy = false; }
+    }
+
+    private async Task SearchAsync()
+    {
+        page = 1;
+        await LoadAsync();
+    }
+
+    private async Task ClearSearchAsync()
+    {
+        memberName = null;
+        activeStatus = null;
+        packageName = null;
+        await SearchAsync();
+    }
+
+    private void ChangePageSize(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out var value) && value is 5 or 10 or 20 or 50)
+        {
+            pageSize = value;
+            page = 1;
+        }
+    }
+
+    private void ChangePage(int value) => page = Math.Clamp(value, 1, PageCount);
+}

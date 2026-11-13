@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using System.ComponentModel.DataAnnotations;
 using zSubscription.Entities.KhoiNBD.Models;
 using zSubscription.Services.KhoiNBD;
 
@@ -27,6 +28,9 @@ public sealed class MembershipFeeHub : Hub
         return item is null ? null : MapItem(item);
     }
 
+    public async Task<IEnumerable<object>> GetAll(string? memberName = null, string? activeStatus = null, string? packageName = null)
+        => (await _fees.SearchAsync(memberName, activeStatus, packageName)).Select(MapItem);
+
     public async Task<IEnumerable<object>> GetPackages()
         => (await _packages.GetAllAsync()).Select(x => new
         {
@@ -40,7 +44,7 @@ public sealed class MembershipFeeHub : Hub
         item.MembershipFeeKhoiNbdid = 0;
         Validate(item);
         var created = await _fees.CreateAsync(item);
-        await BroadcastAsync("created", created.MemberName);
+        await BroadcastAsync("created", created.MembershipFeeKhoiNbdid);
         return created.MembershipFeeKhoiNbdid;
     }
 
@@ -53,7 +57,7 @@ public sealed class MembershipFeeHub : Hub
         Validate(item);
         if (!await _fees.UpdateAsync(item))
             throw new HubException("Membership fee was not found.");
-        await BroadcastAsync("updated", item.MemberName);
+        await BroadcastAsync("updated", item.MembershipFeeKhoiNbdid);
     }
 
     public async Task Delete(int id)
@@ -62,24 +66,32 @@ public sealed class MembershipFeeHub : Hub
             ?? throw new HubException("Membership fee was not found.");
         if (!await _fees.DeleteAsync(id))
             throw new HubException("Could not delete membership fee.");
-        await BroadcastAsync("deleted", item.MemberName);
+        await BroadcastAsync("deleted", id);
     }
 
     private static void Validate(MembershipFeeKhoiNbd item)
     {
-        if (string.IsNullOrWhiteSpace(item.MemberName))
-            throw new HubException("Member name is required.");
-        if (item.Amount <= 0)
-            throw new HubException("Amount must be greater than 0.");
+        var results = new List<ValidationResult>();
+        var context = new ValidationContext(item);
+        if (!Validator.TryValidateObject(item, context, results, validateAllProperties: true))
+        {
+            var errors = results
+                .Select(result => result.ErrorMessage)
+                .Where(message => !string.IsNullOrWhiteSpace(message));
+            throw new HubException(string.Join(" ", errors));
+        }
     }
 
-    private Task BroadcastAsync(string action, string? memberName)
-        => Clients.All.SendAsync("MembershipFeeChanged", new
+    private async Task BroadcastAsync(string action, int id)
+    {
+        var item = action == "deleted" ? null : await _fees.GetByIdAsync(id);
+        await Clients.All.SendAsync("MembershipFeeChanged", new
         {
             Action = action,
-            MemberName = memberName,
-            ChangedAt = DateTime.Now.ToString("HH:mm:ss dd/MM/yyyy")
+            MembershipFeeKhoiNbdid = id,
+            Item = item is null ? null : MapItem(item)
         });
+    }
 
     private static object MapItem(MembershipFeeKhoiNbd item) => new
     {
@@ -91,7 +103,9 @@ public sealed class MembershipFeeHub : Hub
         item.Notes,
         item.Status,
         PublishDate = item.PublishDate?.ToString("yyyy-MM-dd"),
+        UpdateAt = item.UpdateAt?.ToString("yyyy-MM-ddTHH:mm:ss"),
         item.FeePackageKhoiNbdid,
+        PackageName = item.FeePackageKhoiNbd?.PackageName,
         item.IsActive
     };
 
@@ -100,7 +114,7 @@ public sealed class MembershipFeeHub : Hub
         MembershipFeeKhoiNbdid = dto.MembershipFeeKhoiNbdid,
         MemberName = dto.MemberName?.Trim() ?? string.Empty,
         Amount = dto.Amount,
-        PaymentDate = dto.PaymentDate ?? DateTime.Today,
+        PaymentDate = dto.PaymentDate.GetValueOrDefault(),
         EndDate = dto.EndDate,
         Notes = dto.Notes,
         Status = dto.Status,

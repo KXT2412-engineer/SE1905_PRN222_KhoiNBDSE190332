@@ -2,127 +2,99 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/membershipFeeHub")
+        .withUrl("/membershipFeeHub", { transport: signalR.HttpTransportType.WebSockets, skipNegotiation: true })
         .withAutomaticReconnect()
         .build();
-    const modalElement = document.getElementById("signalRModal");
-    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    const table = document.getElementById("membershipFeeTable");
+    const body = table.tBodies[0];
     const status = document.getElementById("hubStatus");
-    const form = document.getElementById("signalRFeeForm");
-    const errorBox = document.getElementById("signalRFormError");
+    let busy = false;
+    let pending = false;
 
-    const value = id => document.getElementById(id).value;
-    const setValue = (id, value) => document.getElementById(id).value = value ?? "";
-    const setReady = ready => {
-        document.querySelectorAll("#btnSignalRCreate,.btn-sr-edit,.btn-sr-delete")
-            .forEach(button => button.disabled = !ready);
+    const esc = value => {
+        const node = document.createElement("span");
+        node.textContent = value ?? "";
+        return node.innerHTML;
     };
-    const showStatus = (message, style) => {
-        status.textContent = message;
-        status.className = `alert alert-${style} py-2 small mb-3`;
-    };
-    const showError = message => {
-        errorBox.textContent = message;
-        errorBox.classList.remove("d-none");
-    };
-    const clearError = () => {
-        errorBox.textContent = "";
-        errorBox.classList.add("d-none");
-    };
-    const today = () => new Date().toISOString().slice(0, 10);
+    const date = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString("vi-VN") : "-";
 
-    async function loadPackages(selectedId) {
-        const packages = await connection.invoke("GetPackages");
-        const select = document.getElementById("srPackage");
-        select.innerHTML = '<option value="">-- Chọn gói --</option>';
-        packages.forEach(item => {
-            const option = document.createElement("option");
-            option.value = item.feePackageKhoiNbdid;
-            option.textContent = item.packageName;
-            option.selected = String(item.feePackageKhoiNbdid) === String(selectedId ?? "");
-            select.appendChild(option);
+    function row(item) {
+        const id = item.membershipFeeKhoiNbdid;
+        const tr = document.createElement("tr");
+        const columns = [
+            `<div class="fw-semibold">${esc(item.memberName)}</div><div class="text-muted small">ID: ${id}</div>`,
+            `<div class="fw-semibold">${Number(item.amount).toLocaleString("vi-VN")} đ</div><div class="text-muted small">Ngày tham gia: ${date(item.paymentDate)}</div>`,
+            `<div>Hết hạn: ${date(item.endDate)}</div><div class="text-muted small">Publish: ${date(item.publishDate)}</div>`,
+            esc(item.packageName || "-"),
+            `<div class="small">Status: ${item.status ?? "-"}</div><span class="badge ${item.isActive ? "bg-success" : "bg-secondary"}">${item.isActive ? "Active" : "Inactive"}</span>`,
+            `<div class="d-flex flex-wrap gap-1 justify-content-end"><a class="btn btn-sm btn-outline-secondary" href="/MembershipFees/Details/${id}">Details</a><a class="btn btn-sm btn-outline-primary" href="/MembershipFees/Edit/${id}">Edit</a><a class="btn btn-sm btn-outline-danger" href="/MembershipFees/Delete/${id}">Delete</a></div>`
+        ];
+        columns.forEach((content, index) => {
+            const cell = document.createElement("td");
+            if (index === 5) cell.className = "text-end";
+            cell.innerHTML = content;
+            tr.appendChild(cell);
         });
+        return tr;
     }
 
-    async function openCreate() {
-        clearError();
-        form.reset();
-        setValue("srId", 0);
-        setValue("srPaymentDate", today());
-        setValue("srStatus", 1);
-        document.getElementById("srIsActive").checked = true;
-        document.getElementById("signalRModalLabel").textContent = "SignalR Create";
-        document.getElementById("btnSignalRSave").textContent = "Create via SignalR";
-        await loadPackages(null);
-    }
-
-    async function openEdit(id) {
-        clearError();
-        const item = await connection.invoke("GetById", Number(id));
-        if (!item) throw new Error("Không tìm thấy khoản phí.");
-        setValue("srId", item.membershipFeeKhoiNbdid);
-        setValue("srMemberName", item.memberName);
-        setValue("srAmount", item.amount);
-        setValue("srPaymentDate", item.paymentDate);
-        setValue("srEndDate", item.endDate);
-        setValue("srStatus", item.status);
-        setValue("srNotes", item.notes);
-        document.getElementById("srIsActive").checked = item.isActive;
-        await loadPackages(item.feePackageKhoiNbdid);
-        document.getElementById("signalRModalLabel").textContent = `SignalR Edit #${id}`;
-        document.getElementById("btnSignalRSave").textContent = "Update via SignalR";
-        modal.show();
-    }
-
-    document.getElementById("btnSignalRCreate").addEventListener("click", () => {
-        openCreate().catch(error => showError(error.message));
-    });
-    document.querySelectorAll(".btn-sr-edit").forEach(button => button.addEventListener("click", () => {
-        openEdit(button.dataset.id).catch(error => showStatus(error.message, "danger"));
-    }));
-    document.querySelectorAll(".btn-sr-delete").forEach(button => button.addEventListener("click", async () => {
-        if (!confirm(`Xoá khoản phí #${button.dataset.id} bằng SignalR?`)) return;
-        try { await connection.invoke("Delete", Number(button.dataset.id)); }
-        catch (error) { showStatus(error.message, "danger"); }
-    }));
-
-    form.addEventListener("submit", async event => {
-        event.preventDefault();
-        clearError();
-        const id = Number(value("srId"));
-        const dto = {
-            membershipFeeKhoiNbdid: id,
-            memberName: value("srMemberName").trim(),
-            amount: Number(value("srAmount")),
-            paymentDate: value("srPaymentDate") || null,
-            endDate: value("srEndDate") || null,
-            notes: value("srNotes") || null,
-            status: value("srStatus") ? Number(value("srStatus")) : null,
-            publishDate: today(),
-            feePackageKhoiNbdid: value("srPackage") ? Number(value("srPackage")) : null,
-            isActive: document.getElementById("srIsActive").checked
-        };
-        if (!dto.memberName || dto.amount <= 0) {
-            showError("Tên hội viên và số tiền lớn hơn 0 là bắt buộc.");
-            return;
-        }
+    async function refresh() {
+        pending = true;
+        if (busy) return;
+        busy = true;
         try {
-            await connection.invoke(id ? "Update" : "Create", dto);
-            modal.hide();
+            while (pending) {
+                pending = false;
+                const items = await connection.invoke(
+                    "GetAll",
+                    document.getElementById("memberName").value || null,
+                    document.getElementById("activeStatus").value || null,
+                    document.getElementById("packageName").value || null);
+                const rows = items.map(row);
+                if (!rows.length) {
+                    const empty = document.createElement("tr");
+                    empty.className = "js-empty-row";
+                    empty.innerHTML = '<td colspan="6" class="text-center text-muted py-4">Không có dữ liệu phù hợp.</td>';
+                    rows.push(empty);
+                }
+                body.replaceChildren(...rows);
+                tablePagination.init({
+                    table: "#membershipFeeTable",
+                    pager: "#feePager",
+                    info: "#feePageInfo",
+                    pageSizeSelector: "#feePageSize",
+                    pageSize: Number(document.getElementById("feePageSize").value) || 10
+                });
+            }
         } catch (error) {
-            showError(error.message);
+            status.textContent = `Không thể cập nhật danh sách qua SignalR: ${error.message}`;
+            status.className = "alert alert-danger py-2 small mb-3";
+        } finally {
+            busy = false;
         }
-    });
+    }
 
-    connection.on("MembershipFeeChanged", payload => {
-        showStatus(`SignalR: ${payload.action} ${payload.memberName ?? ""}. Đang tải lại...`, "success");
-        window.setTimeout(() => window.location.reload(), 700);
+    connection.on("MembershipFeeChanged", refresh);
+    connection.onreconnecting(() => {
+        status.textContent = "SignalR đang kết nối lại...";
+        status.className = "alert alert-warning py-2 small mb-3";
     });
-    connection.onreconnecting(() => { setReady(false); showStatus("SignalR đang kết nối lại...", "warning"); });
-    connection.onreconnected(() => { setReady(true); showStatus("SignalR đã kết nối lại.", "success"); });
-    connection.onclose(() => { setReady(false); showStatus("SignalR đã ngắt kết nối.", "danger"); });
-
+    connection.onreconnected(() => {
+        status.textContent = "SignalR đã kết nối. Đang đồng bộ danh sách...";
+        status.className = "alert alert-success py-2 small mb-3";
+        refresh();
+    });
+    connection.onclose(() => {
+        status.textContent = "SignalR đã ngắt kết nối.";
+        status.className = "alert alert-danger py-2 small mb-3";
+    });
     connection.start()
-        .then(() => { setReady(true); showStatus("SignalR đã kết nối. CRUD realtime sẵn sàng.", "success"); })
-        .catch(error => showStatus(`Kết nối SignalR thất bại: ${error.message}`, "danger"));
+        .then(() => {
+            status.textContent = "SignalR đã kết nối. Danh sách tự cập nhật khi có thay đổi.";
+            status.className = "alert alert-success py-2 small mb-3";
+        })
+        .catch(error => {
+            status.textContent = `Kết nối SignalR thất bại: ${error.message}`;
+            status.className = "alert alert-danger py-2 small mb-3";
+        });
 });

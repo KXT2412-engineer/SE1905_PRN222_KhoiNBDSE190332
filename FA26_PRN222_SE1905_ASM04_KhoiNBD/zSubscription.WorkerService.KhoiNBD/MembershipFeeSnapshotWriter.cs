@@ -18,7 +18,9 @@ public sealed class MembershipFeeSnapshotWriter
     public MembershipFeeSnapshotWriter(IOptions<WorkerOptions> options)
         => _options = options.Value;
 
-    public string FilePath => Path.GetFullPath(_options.FilePath, AppContext.BaseDirectory);
+    public string FilePath => Path.GetFullPath(_options.LogFilePath, AppContext.BaseDirectory);
+
+    public bool IsEnabled => _options.WriteFileLog;
 
     public async Task WriteAsync(
         IEnumerable<MembershipFeeKhoiNbd> membershipFees,

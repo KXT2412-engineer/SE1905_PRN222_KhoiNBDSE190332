@@ -75,6 +75,9 @@ public class MembershipFeeKhoiNbdService : IMembershipFeeKhoiNbdService
             return false;
         }
 
+        // GetByIdAsync includes the package navigation. Detach that reference so
+        // deleting a fee cannot cascade a DELETE to the shared package row.
+        existing.FeePackageKhoiNbd = null;
         return await _repository.DeleteAsync(existing);
     }
 }

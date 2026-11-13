@@ -2,21 +2,29 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace zSubscription.Entities.KhoiNBD.Models;
 
 public partial class FeePackageKhoiNbd
 {
+    [Key]
     public int FeePackageKhoiNbdid { get; set; }
 
+    [Required(ErrorMessage = "Tên gói là bắt buộc.")]
+    [StringLength(200, MinimumLength = 2, ErrorMessage = "Tên gói phải từ 2 đến 200 ký tự.")]
     public string PackageName { get; set; }
 
+    [StringLength(1000, ErrorMessage = "Mô tả không được vượt quá 1000 ký tự.")]
     public string Description { get; set; }
 
+    [Range(1, 3650, ErrorMessage = "Thời hạn phải từ 1 đến 3650 ngày.")]
     public int? DurationInDays { get; set; }
 
+    [Range(typeof(decimal), "0.01", "9999999999999999.99", ErrorMessage = "Giá gói phải lớn hơn 0 và không vượt quá giới hạn.")]
     public decimal? Price { get; set; }
 
+    [Range(0, 1, ErrorMessage = "Trạng thái gói phải là 0 hoặc 1.")]
     public int? Status { get; set; }
 
     public DateTime? PublishDate { get; set; }

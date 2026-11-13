@@ -33,7 +33,13 @@
         <form asp-action="Delete" method="post" class="d-inline">
             <input type="hidden" name="id" value="@Model.MembershipFeeKhoiNbdid" />
             <button type="submit" class="btn btn-danger">Xác nhận xoá</button>
+            <button type="button" class="btn btn-outline-danger" data-sr-delete-id="@Model.MembershipFeeKhoiNbdid">Xoá bằng SignalR</button>
         </form>
         <a asp-action="Index" class="btn btn-outline-secondary">Huỷ</a>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/membership-fee-form-signalr.js" asp-append-version="true"></script>
+}

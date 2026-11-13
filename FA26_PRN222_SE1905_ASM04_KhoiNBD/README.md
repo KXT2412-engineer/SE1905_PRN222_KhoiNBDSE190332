@@ -1,15 +1,14 @@
 # ASM04 — Console Worker và Windows Service
 
 Bài đọc danh sách `MembershipFeeKhoiNbd` từ database của KhoiNBD và ghi nối tiếp
-JSON có timestamp vào `Logs/KhoiNBD_SE1905_WS.txt` mỗi 5 giây. Bài chỉ đọc database,
-không thay đổi dữ liệu.
+JSON có timestamp vào `Logs/KhoiNBD_SE1905_WS.txt` theo chu kỳ cấu hình (mặc định 5
+giây). `DeactivateExpiredFees` mặc định tắt để worker không sửa dữ liệu khi demo.
 
 ## Test bằng Visual Studio
 
 1. Mở `FA26_PRN222_SE1905_ASM04_KhoiNBD.slnx`.
 2. Chọn `zSubscription.WorkerService.KhoiNBD` làm Startup Project.
-3. Ctrl+F5 và chờ 10 giây. Console phải hiện `Appended ... Membership Fees...`
-   khoảng hai lần.
+3. Ctrl+F5 và chờ ít nhất 10 giây. Console phải hiện log mỗi chu kỳ.
 4. Kiểm tra file `bin/Debug/net8.0/Logs/KhoiNBD_SE1905_WS.txt`.
 
 ## Publish và cài Windows Service
@@ -27,10 +26,14 @@ Mở PowerShell bằng **Run as administrator**, sau đó chạy:
 ```
 
 Mở `services.msc` và tìm `KhoiNBD_PRN222_ASM04`. Script đặt Startup Type là
-Manual. Để gỡ đăng ký nhưng giữ file output:
+Manual rồi khởi động service. Làm mới danh sách trong Services nếu chưa thấy tên.
+File snapshot nằm ở `publish\Logs\KhoiNBD_SE1905_WS.txt`. Để gỡ đăng ký nhưng giữ
+file output:
 
 ```powershell
 .\Uninstall-Service.ps1
 ```
 
-Connection string và các mapping database dùng nguyên cấu hình hiện có của project.
+Nếu worker đã chạy bằng Ctrl+F5 thì dừng console trước khi cài service để tránh hai
+tiến trình cùng ghi file. Service đọc `appsettings.json` nằm cạnh executable trong
+thư mục `publish`; sau khi đổi cấu hình, publish lại trước khi cài/chạy service.

@@ -2,17 +2,25 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace zSubscription.Entities.KhoiNBD.Models;
 
 public partial class MembershipFeeKhoiNbd
 {
+    [Key]
     public int MembershipFeeKhoiNbdid { get; set; }
 
+    [Required(ErrorMessage = "Tên hội viên là bắt buộc.")]
+    [StringLength(250, MinimumLength = 2, ErrorMessage = "Tên hội viên phải từ 2 đến 250 ký tự.")]
     public string MemberName { get; set; }
 
+    [Range(typeof(decimal), "0.01", "9999999999999999.99", ErrorMessage = "Số tiền phải lớn hơn 0 và không vượt quá giới hạn.")]
+    [Required(ErrorMessage = "Số tiền là bắt buộc.")]
     public decimal Amount { get; set; }
 
+    [Required(ErrorMessage = "Ngày tham gia là bắt buộc.")]
+    [DateTimeRange("1900-01-01", "9999-12-31", ErrorMessage = "Ngày thanh toán phải nằm trong khoảng hợp lệ.")]
     public DateTime PaymentDate { get; set; }
 
     public string PaymentMethod { get; set; }
@@ -25,6 +33,7 @@ public partial class MembershipFeeKhoiNbd
 
     public string Notes { get; set; }
 
+    [Range(0, 2, ErrorMessage = "Trạng thái phải là 0, 1 hoặc 2.")]
     public int? Status { get; set; }
 
     public DateTime? PublishDate { get; set; }

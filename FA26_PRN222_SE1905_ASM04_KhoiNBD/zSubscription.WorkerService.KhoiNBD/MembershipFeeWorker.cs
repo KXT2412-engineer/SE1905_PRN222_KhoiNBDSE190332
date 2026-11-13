@@ -1,21 +1,24 @@
 using zSubscription.Services.KhoiNBD;
+using Microsoft.Extensions.Options;
 
 namespace zSubscription.WorkerService.KhoiNBD;
 
 public sealed class MembershipFeeWorker : BackgroundService
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(5);
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly MembershipFeeSnapshotWriter _writer;
     private readonly ILogger<MembershipFeeWorker> _logger;
+    private readonly WorkerOptions _options;
 
     public MembershipFeeWorker(
         IServiceScopeFactory scopeFactory,
         MembershipFeeSnapshotWriter writer,
+        IOptions<WorkerOptions> options,
         ILogger<MembershipFeeWorker> logger)
     {
         _scopeFactory = scopeFactory;
         _writer = writer;
+        _options = options.Value;
         _logger = logger;
     }
 
@@ -23,7 +26,7 @@ public sealed class MembershipFeeWorker : BackgroundService
     {
         _logger.LogInformation(
             "Membership Fee worker started. Interval: {Interval}. Text file: {FilePath}",
-            Interval,
+            TimeSpan.FromSeconds(Math.Max(1, _options.IntervalSeconds)),
             _writer.FilePath);
 
         try
@@ -33,13 +36,21 @@ public sealed class MembershipFeeWorker : BackgroundService
                 try
                 {
                     using var scope = _scopeFactory.CreateScope();
+                    var maintenance = scope.ServiceProvider.GetRequiredService<IMembershipFeeMaintenanceService>();
+                    var deactivatedCount = _options.DeactivateExpiredFees
+                        ? await maintenance.DeactivateExpiredAsync(DateTime.Now)
+                        : 0;
                     var service = scope.ServiceProvider.GetRequiredService<IMembershipFeeKhoiNbdService>();
                     var items = await service.GetAllAsync();
-                    await _writer.WriteAsync(items, stoppingToken);
+                    if (_writer.IsEnabled)
+                    {
+                        await _writer.WriteAsync(items, stoppingToken);
+                    }
 
                     _logger.LogInformation(
-                        "Appended {Count} Membership Fees to {FilePath} at {Time}",
+                        "Processed {Count} Membership Fees; deactivated {DeactivatedCount} expired fees. Snapshot: {FilePath} at {Time}",
                         items.Count,
+                        deactivatedCount,
                         _writer.FilePath,
                         DateTimeOffset.Now);
                 }
@@ -51,10 +62,11 @@ public sealed class MembershipFeeWorker : BackgroundService
                 {
                     _logger.LogError(
                         ex,
-                        "Could not read Membership Fees or append the text file. Retrying in 5 seconds.");
+                        "Worker cycle failed. Retrying after {IntervalSeconds} seconds.",
+                        _options.IntervalSeconds);
                 }
 
-                await Task.Delay(Interval, stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(Math.Max(1, _options.IntervalSeconds)), stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

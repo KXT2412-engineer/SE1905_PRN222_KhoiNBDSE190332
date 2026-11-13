@@ -1,0 +1,115 @@
+@inject IMembershipFeeKhoiNbdService FeeService
+@inject IFeePackageKhoiNbdService PackageService
+
+<section class="card shadow-sm my-3">
+    <div class="card-header bg-white"><h2 class="h5 mb-0">Tạo khoản phí</h2></div>
+    <div class="card-body">
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+        <EditForm Model="model" OnValidSubmit="CreateAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger mb-3" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tên hội viên *</label>
+                    <InputText @bind-Value="model.MemberName" class="form-control" />
+                    <ValidationMessage For="() => model.MemberName" class="text-danger small" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số tiền *</label>
+                    <InputNumber @bind-Value="model.Amount" class="form-control" step="0.01" />
+                    <ValidationMessage For="() => model.Amount" class="text-danger small" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngày thanh toán *</label>
+                    <InputDate @bind-Value="model.PaymentDate" class="form-control" />
+                    <ValidationMessage For="() => model.PaymentDate" class="text-danger small" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Gói phí</label>
+                    <InputSelect TValue="int?" @bind-Value="model.FeePackageKhoiNbdid" class="form-select">
+                        <option value="">-- Chọn gói phí --</option>
+                        @foreach (var package in packages)
+                        {
+                            <option value="@package.FeePackageKhoiNbdid">@package.PackageName</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngày kết thúc</label>
+                    <InputDate @bind-Value="model.EndDate" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Trạng thái (0–2)</label>
+                    <InputNumber @bind-Value="model.Status" class="form-control" />
+                    <ValidationMessage For="() => model.Status" class="text-danger small" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngày publish</label>
+                    <InputDate @bind-Value="model.PublishDate" class="form-control" />
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <InputCheckbox @bind-Value="model.IsActive" class="form-check-input" />
+                        <label class="form-check-label">Đang hoạt động</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Ghi chú</label>
+                    <InputTextArea @bind-Value="model.Notes" class="form-control" rows="3" />
+                </div>
+            </div>
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary" disabled="@busy">@(busy ? "Đang tạo…" : "Create")</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => OnCancel.InvokeAsync()" disabled="@busy">Huỷ</button>
+            </div>
+        </EditForm>
+    </div>
+</section>
+
+@code {
+    [Parameter] public EventCallback<string> OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private MembershipFeeKhoiNbd model = new()
+    {
+        MemberName = string.Empty,
+        PaymentDate = DateTime.Today,
+        PublishDate = DateTime.Today,
+        IsActive = true
+    };
+    private List<FeePackageKhoiNbd> packages = new();
+    private string? errorMessage;
+    private bool busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            packages = await PackageService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không tải được danh sách gói phí: " + ex.Message;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        if (busy) return;
+        busy = true;
+        errorMessage = null;
+        try
+        {
+            var created = await FeeService.CreateAsync(model);
+            await OnSaved.InvokeAsync($"Đã tạo khoản phí #{created.MembershipFeeKhoiNbdid} cho {created.MemberName}.");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không tạo được khoản phí: " + ex.Message;
+        }
+        finally { busy = false; }
+    }
+}

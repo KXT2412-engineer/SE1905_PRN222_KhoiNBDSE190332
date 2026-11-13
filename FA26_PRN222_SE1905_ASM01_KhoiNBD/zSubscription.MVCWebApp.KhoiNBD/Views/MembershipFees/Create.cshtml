@@ -13,10 +13,11 @@
 
 <div class="card shadow-sm">
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" data-membership-fee-form>
             <partial name="_Form" model="Model" />
             <div class="mt-4 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Create</button>
+                <button type="button" class="btn btn-success" data-sr-form-action="create">Create bằng SignalR</button>
                 <a asp-action="Index" class="btn btn-outline-secondary">Huỷ</a>
             </div>
         </form>
@@ -25,4 +26,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/membership-fee-form-signalr.js" asp-append-version="true"></script>
 }

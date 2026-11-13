@@ -63,8 +63,8 @@ public class MembershipFeesController : Controller
             return View(membershipFee);
         }
 
-        await _membershipFeeService.CreateAsync(membershipFee);
-        await BroadcastChangedAsync("created", membershipFee.MemberName);
+        var created = await _membershipFeeService.CreateAsync(membershipFee);
+        await BroadcastChangedAsync("created", created.MembershipFeeKhoiNbdid);
         TempData["Success"] = $"Đã tạo khoản phí cho \"{membershipFee.MemberName}\".";
         return RedirectToAction(nameof(Index));
     }
@@ -104,7 +104,7 @@ public class MembershipFeesController : Controller
             return NotFound();
         }
 
-        await BroadcastChangedAsync("updated", membershipFee.MemberName);
+        await BroadcastChangedAsync("updated", membershipFee.MembershipFeeKhoiNbdid);
 
         TempData["Success"] = $"Đã cập nhật khoản phí #{membershipFee.MembershipFeeKhoiNbdid}.";
         return RedirectToAction(nameof(Index));
@@ -120,11 +120,10 @@ public class MembershipFeesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var existing = await _membershipFeeService.GetByIdAsync(id);
         var deleted = await _membershipFeeService.DeleteAsync(id);
         if (deleted)
         {
-            await BroadcastChangedAsync("deleted", existing?.MemberName);
+            await BroadcastChangedAsync("deleted", id);
         }
         TempData[deleted ? "Success" : "Error"] = deleted
             ? $"Đã xoá khoản phí #{id}."
@@ -132,13 +131,28 @@ public class MembershipFeesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private Task BroadcastChangedAsync(string action, string? memberName)
-        => _hub.Clients.All.SendAsync("MembershipFeeChanged", new
+    private async Task BroadcastChangedAsync(string action, int id)
+    {
+        var item = action == "deleted" ? null : await _membershipFeeService.GetByIdAsync(id);
+        await _hub.Clients.All.SendAsync("MembershipFeeChanged", new
         {
             Action = action,
-            MemberName = memberName,
-            ChangedAt = DateTime.Now.ToString("HH:mm:ss dd/MM/yyyy")
+            MembershipFeeKhoiNbdid = id,
+            Item = item is null ? null : new
+            {
+                item.MemberName,
+                item.Amount,
+                PaymentDate = item.PaymentDate.ToString("yyyy-MM-dd"),
+                PackageName = item.FeePackageKhoiNbd?.PackageName,
+                EndDate = item.EndDate?.ToString("yyyy-MM-dd"),
+                item.Status,
+                item.IsActive,
+                PublishDate = item.PublishDate?.ToString("yyyy-MM-dd"),
+                UpdateAt = item.UpdateAt?.ToString("yyyy-MM-ddTHH:mm:ss"),
+                item.Notes
+            }
         });
+    }
 
     private async Task LoadPackagesAsync(int? selectedId = null)
     {

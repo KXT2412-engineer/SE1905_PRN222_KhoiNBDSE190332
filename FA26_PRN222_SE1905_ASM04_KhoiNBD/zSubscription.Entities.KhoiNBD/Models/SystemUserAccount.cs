@@ -2,37 +2,59 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace zSubscription.Entities.KhoiNBD.Models;
 
 public partial class SystemUserAccount
 {
+    [Key]
     public int UserAccountId { get; set; }
 
+    [Required(ErrorMessage = "Tên đăng nhập là bắt buộc.")]
+    [StringLength(50, MinimumLength = 3, ErrorMessage = "Tên đăng nhập phải từ 3 đến 50 ký tự.")]
     public string UserName { get; set; }
 
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc.")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu phải từ 8 đến 100 ký tự.")]
     public string Password { get; set; }
 
+    [Required(ErrorMessage = "Họ tên là bắt buộc.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Họ tên phải từ 2 đến 100 ký tự.")]
+    [RegularExpression(@"^[\p{L}\p{M}][\p{L}\p{M}\s'.-]*$", ErrorMessage = "Họ tên chứa ký tự không hợp lệ.")]
     public string FullName { get; set; }
 
+    [Required(ErrorMessage = "Email là bắt buộc.")]
+    [EmailAddress(ErrorMessage = "Email không đúng định dạng.")]
+    [StringLength(150, ErrorMessage = "Email không được vượt quá 150 ký tự.")]
     public string Email { get; set; }
 
+    [Required(ErrorMessage = "Số điện thoại là bắt buộc.")]
+    [StringLength(50, MinimumLength = 7, ErrorMessage = "Số điện thoại phải từ 7 đến 50 ký tự.")]
+    [RegularExpression(@"^\+?[0-9][0-9\s().-]{5,48}[0-9]$", ErrorMessage = "Số điện thoại không đúng định dạng.")]
     public string Phone { get; set; }
 
+    [Required(ErrorMessage = "Mã nhân viên là bắt buộc.")]
+    [StringLength(50, ErrorMessage = "Mã nhân viên không được vượt quá 50 ký tự.")]
     public string EmployeeCode { get; set; }
 
+    [Range(1, 10, ErrorMessage = "RoleId phải từ 1 đến 10.")]
     public int RoleId { get; set; }
 
+    [StringLength(50, ErrorMessage = "RequestCode không được vượt quá 50 ký tự.")]
     public string RequestCode { get; set; }
 
     public DateTime? CreatedDate { get; set; }
 
+    [StringLength(50, ErrorMessage = "ApplicationCode không được vượt quá 50 ký tự.")]
     public string ApplicationCode { get; set; }
 
+    [StringLength(50, ErrorMessage = "CreatedBy không được vượt quá 50 ký tự.")]
     public string CreatedBy { get; set; }
 
     public DateTime? ModifiedDate { get; set; }
 
+    [StringLength(50, ErrorMessage = "ModifiedBy không được vượt quá 50 ký tự.")]
     public string ModifiedBy { get; set; }
 
     public bool IsActive { get; set; }

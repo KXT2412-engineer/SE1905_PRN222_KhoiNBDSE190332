@@ -11,49 +11,52 @@
     <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
+<div id="membershipFeeDetails"
+     class="card shadow-sm"
+     data-membership-fee-id="@Model.MembershipFeeKhoiNbdid">
+    <div id="membershipFeeDetailsContent" class="card-body">
         <dl class="row mb-0">
             <dt class="col-sm-3">Hội viên</dt>
-            <dd class="col-sm-9">@Model.MemberName</dd>
+            <dd class="col-sm-9" data-detail-field="memberName">@Model.MemberName</dd>
 
             <dt class="col-sm-3">Số tiền</dt>
-            <dd class="col-sm-9">@Model.Amount.ToString("N0") đ</dd>
+            <dd class="col-sm-9"><span data-detail-field="amount">@Model.Amount.ToString("N0")</span> đ</dd>
 
             <dt class="col-sm-3">Ngày tham gia</dt>
-            <dd class="col-sm-9">@Model.PaymentDate.ToString("dd/MM/yyyy")</dd>
+            <dd class="col-sm-9" data-detail-field="paymentDate">@Model.PaymentDate.ToString("dd/MM/yyyy")</dd>
 
             <dt class="col-sm-3">Gói phí</dt>
-            <dd class="col-sm-9">@(Model.FeePackageKhoiNbd?.PackageName ?? "-")</dd>
+            <dd class="col-sm-9" data-detail-field="packageName">@(Model.FeePackageKhoiNbd?.PackageName ?? "-")</dd>
 
             <dt class="col-sm-3">Ngày hết hạn</dt>
-            <dd class="col-sm-9">@(Model.EndDate?.ToString("dd/MM/yyyy") ?? "-")</dd>
+            <dd class="col-sm-9" data-detail-field="endDate">@(Model.EndDate?.ToString("dd/MM/yyyy") ?? "-")</dd>
 
             <dt class="col-sm-3">Status / Active</dt>
             <dd class="col-sm-9">
-                @(Model.Status?.ToString() ?? "-")
-                @if (Model.IsActive)
-                {
-                    <span class="badge bg-success ms-1">Active</span>
-                }
-                else
-                {
-                    <span class="badge bg-secondary ms-1">Inactive</span>
-                }
+                <span data-detail-field="status">@(Model.Status?.ToString() ?? "-")</span>
+                <span data-detail-field="activeBadge" class="badge @(Model.IsActive ? "bg-success" : "bg-secondary") ms-1">@(Model.IsActive ? "Active" : "Inactive")</span>
             </dd>
 
             <dt class="col-sm-3">Publish date</dt>
-            <dd class="col-sm-9">@(Model.PublishDate?.ToString("dd/MM/yyyy") ?? "-")</dd>
+            <dd class="col-sm-9" data-detail-field="publishDate">@(Model.PublishDate?.ToString("dd/MM/yyyy") ?? "-")</dd>
 
             <dt class="col-sm-3">Update at</dt>
-            <dd class="col-sm-9">@(Model.UpdateAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+            <dd class="col-sm-9" data-detail-field="updateAt">@(Model.UpdateAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
 
             <dt class="col-sm-3">Ghi chú</dt>
-            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</dd>
+            <dd class="col-sm-9" data-detail-field="notes">@(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</dd>
         </dl>
+        <p id="membershipFeeDeletedNotice" class="alert alert-warning mt-3 mb-0" role="status" hidden>
+            Khoản phí này đã bị xoá ở cửa sổ khác. Không thể xem hoặc thao tác với bản ghi này nữa.
+        </p>
     </div>
-    <div class="card-footer bg-white d-flex gap-2">
+    <div id="membershipFeeDetailsActions" class="card-footer bg-white d-flex gap-2">
         <a asp-action="Edit" asp-route-id="@Model.MembershipFeeKhoiNbdid" class="btn btn-primary">Edit</a>
         <a asp-action="Delete" asp-route-id="@Model.MembershipFeeKhoiNbdid" class="btn btn-outline-danger">Delete</a>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/membership-fee-details-signalr.js" asp-append-version="true"></script>
+}
